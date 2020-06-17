@@ -2,6 +2,7 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 
+
 const config ={
     apiKey: "AIzaSyCR794OVa0ciWrY35amA_UN5RL5asOY9s8",
     authDomain: "ecomm-db-b9806.firebaseapp.com",
@@ -39,6 +40,35 @@ try{
 }
 return userRef;
 
+}
+
+export const convertCollectionsSnapshotToMap =(collections) =>{
+    const transformedCollection = collections.docs.map(doc =>{
+        const {title,items} = doc.data();
+        return {
+            routeName: encodeURI(title.toLowerCase()),
+            id:doc.id,
+            title,
+            items
+        }
+    });
+    return transformedCollection.reduce((accumulator,collection)=>{
+        accumulator[collection.title.toLowerCase()]=collection;
+        return accumulator;
+    },{});
+}
+
+export const addCollectionsAndDocuments = async (collectionKey, objectsToAdd) => {
+    const collectionRef = firestore.collection(collectionKey);
+    console.log(collectionRef);
+
+    const batch = firestore.batch();
+    objectsToAdd.forEach(obj=>{
+        const newDocRef = collectionRef.doc();
+        batch.set(newDocRef,obj);
+    });
+
+    return await batch.commit();
 }
 
 firebase.initializeApp(config);
